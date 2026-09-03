@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <title>Student - Button Race</title>
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; margin-top: 50px; }
+        #raceBtn { font-size: 24px; padding: 20px 40px; margin-top: 20px; cursor: pointer; }
+        #raceBtn:disabled { background-color: #ccc; cursor: not-allowed; }
+        #status { font-size: 32px; color: red; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <h2>แข่งกันกดปุ่ม!</h2>
+    <input type="text" id="username" placeholder="ใส่ชื่อของคุณ" style="font-size: 18px; padding: 5px;">
+    <br><br>
+    <div id="status">รออาจารย์เริ่มเกม...</div>
+    <button id="raceBtn" disabled onclick="press()">กดเลย!</button>
+
+    <script>
+        const socket = io();
+        const btn = document.getElementById('raceBtn');
+        const status = document.getElementById('status');
+
+        socket.on('start_countdown', () => {
+            let count = 3;
+            status.innerText = count;
+            btn.disabled = true;
+
+            const timer = setInterval(() => {
+                count--;
+                if (count > 0) {
+                    status.innerText = count;
+                } else {
+                    clearInterval(timer);
+                    status.innerText = "GO!!!";
+                    btn.disabled = false;
+                    socket.emit('enable_buttons');
+                }
+            }, 1000);
+        });
+
+        socket.on('reset_game', () => {
+            btn.disabled = true;
+            status.innerText = "รออาจารย์เริ่มเกม...";
+        });
+
+        function press() {
+            const name = document.getElementById('username').value.trim();
+            if (!name) {
+                alert("กรุณากรอกชื่อก่อนกด!");
+                return;
+            }
+            socket.emit('press_button', { name: name });
+            btn.disabled = true;
+            status.innerText = "บันทึกเวลาแล้ว!";
+        }
+    </script>
+</body>
+</html>
