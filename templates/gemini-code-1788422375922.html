@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <title>Teacher Dashboard</title>
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 30px; }
+        button { font-size: 18px; padding: 10px 20px; margin-right: 10px; cursor: pointer; }
+        ol { font-size: 20px; }
+        li { margin-bottom: 5px; }
+    </style>
+</head>
+<body>
+    <h2>Teacher Dashboard</h2>
+    <button onclick="startGame()" style="background-color: #4CAF50; color: white;">เริ่มเกม (3, 2, 1)</button>
+    <button onclick="resetGame()" style="background-color: #f44336; color: white;">รีเซต</button>
+
+    <h3>ลำดับการกด:</h3>
+    <ol id="leaderboard"></ol>
+
+    <script>
+        const socket = io();
+
+        socket.on('update_leaderboard', (results) => {
+            const list = document.getElementById('leaderboard');
+            list.innerHTML = '';
+            results.forEach((item) => {
+                const li = document.createElement('li');
+                // แปลง timestamp เป็นรูปแบบเวลาอ่านง่าย
+                const date = new Date(item.time * 1000);
+                const timeStr = date.toISOString().substr(11, 12); 
+                li.innerText = `${item.name} (เวลา: ${timeStr})`;
+                list.appendChild(li);
+            });
+        });
+
+        socket.on('reset_game', () => {
+            document.getElementById('leaderboard').innerHTML = '';
+        });
+
+        function startGame() {
+            socket.emit('start_game');
+        }
+
+        function resetGame() {
+            socket.emit('reset_game');
+        }
+    </script>
+</body>
+</html>
